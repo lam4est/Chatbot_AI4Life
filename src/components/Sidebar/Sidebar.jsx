@@ -2,7 +2,7 @@ import React, { useState, useRef } from "react";
 import "./Sidebar.css";
 import { assets } from "../../assets/assets";
 
-const Sidebar = () => {
+const Sidebar = ({ chats, onNewChat, onSelectChat, activeChatId }) => {
     const [extended, setExtended] = useState(false);
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [menuPosition, setMenuPosition] = useState({ top: 0, left: 0 });
@@ -29,7 +29,7 @@ const Sidebar = () => {
             <div className="top">
                 <img onClick={() => setExtended((prev) => !prev)} className="menu" src={assets.menu_icon} alt="" />
 
-                <div className="new_chat">
+                <div className="new_chat" onClick={onNewChat}>
                     <img src={assets.plus_icon} alt="" />
                     {extended ? <p>New Chat</p> : null}
                 </div>
@@ -42,21 +42,24 @@ const Sidebar = () => {
                 {extended ? (
                     <div className="recent">
                         <p className="recent_title">Recent</p>
-                        <div className="recent_entry">
+                        {/* <div className="recent_entry">
                             <img src={assets.message_icon} alt="" />
                             <p>What is react...</p>
                             <div className="icons" onClick={() => handleMoreClick("Chat 1", 0)} ref={(el) => (moreIconRefs.current[0] = el)}>
                                 <img src={assets.more_icon} alt="More" />
                             </div>
-                        </div>
+                        </div> */}
 
-                        <div className="recent_entry">
-                            <img src={assets.message_icon} alt="" />
-                            <p>Learning React Modal</p>
-                            <div className="icons" onClick={() => handleMoreClick("Chat 2", 1)} ref={(el) => (moreIconRefs.current[1] = el)}>
-                                <img src={assets.more_icon} alt="More" />
+                        {chats.map((chat) => (
+                            <div
+                                key={chat.id}
+                                className={`recent_entry ${chat.id === activeChatId ? "active" : ""}`}
+                                onClick={() => onSelectChat(chat.id)}>
+                                    
+                                <img src={assets.message_icon} alt="Chat Icon" />
+                                <p>{chat.name}</p>
                             </div>
-                        </div>
+                        ))}
                     </div>
                 ) : null}
             </div>
@@ -102,3 +105,4 @@ const Sidebar = () => {
 };
 
 export default Sidebar;
+
