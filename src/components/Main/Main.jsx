@@ -5,15 +5,34 @@ import ReactMarkdown from "react-markdown";
 import rehypeRaw from "rehype-raw";
 
 const Main = ({ activeChat }) => {
-    const [input, setInput] = useState("");
-    const [messages, setMessages] = useState(activeChat?.messages || []);  
+    const [input, setInput] = useState(""); 
+    const [activeChats, setActiveChats] = useState({}); 
+    const [messages, setMessages] = useState([]); 
     const chatEndRef = useRef(null);
+
+    useEffect(() => {
+        if (activeChat) {
+            setMessages(activeChats[activeChat.id] || []); 
+        }
+    }, [activeChat, activeChats]);
+
+    useEffect(() => {
+        if (chatEndRef.current) {
+            chatEndRef.current.scrollIntoView({ behavior: "smooth" });
+        }
+    }, [messages]);
 
     const handleSend = async () => {
         if (input.trim()) {
             const userMessage = { sender: "user", text: input };
-            setMessages((prevMessages) => [...prevMessages, userMessage]);  
+            const updatedMessages = [...messages, userMessage];
+            setMessages(updatedMessages);
             setInput("");
+
+            setActiveChats((prevChats) => ({
+                ...prevChats,
+                [activeChat.id]: updatedMessages,
+            }));
 
             try {
                 const response = await fetch("http://172.16.10.181:1234/", {
@@ -27,29 +46,33 @@ const Main = ({ activeChat }) => {
                 });
 
                 const result = await response.json();
-                const botResponse = {
-                    sender: "bot",
-                    text: result.response,
-                };
-                setMessages((prevMessages) => [...prevMessages, botResponse]);  
+                const botResponse = { sender: "bot", text: result.response };
+
+                const finalMessages = [...updatedMessages, botResponse];
+                setMessages(finalMessages);
+
+                setActiveChats((prevChats) => ({
+                    ...prevChats,
+                    [activeChat.id]: finalMessages,
+                }));
             } catch (error) {
                 console.log("Error in the handleSend function: " + error);
                 const botResponse = {
                     sender: "bot",
                     text: "Sorry, something went wrong. Please try again later.",
                 };
-                setMessages((prevMessages) => [...prevMessages, botResponse]);  
+
+                const finalMessages = [...updatedMessages, botResponse];
+                setMessages(finalMessages);
+
+                setActiveChats((prevChats) => ({
+                    ...prevChats,
+                    [activeChat.id]: finalMessages,
+                }));
             }
         }
     };
 
-    useEffect(() => {
-        if (chatEndRef.current) {
-            console.log(chatEndRef.current);
-            chatEndRef.current.scrollIntoView({ behavior: "smooth" });
-        }
-    }, [messages]);
-     
     return (
         <div className="main">
             <div className="nav">
